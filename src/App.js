@@ -5,10 +5,13 @@ import "./app.css";
 import axios from "axios";
 
 function App() {
+  const [isloading, setIsLoading] = useState(false);
   const [para, SetPara] = useState([]);
+
   const onSubmit = async (term) => {
-    let URL = [];
+    let allUrls = [];
     let text = [];
+
     const googleResponse = await axios.get(
       "https://customsearch.googleapis.com/customsearch/v1",
       {
@@ -20,46 +23,58 @@ function App() {
         },
       }
     );
+
     for (let i = 0; i < 5; i++) {
-      URL[i] = {
-        url: googleResponse.data.items[i].formattedUrl,
-        title: googleResponse.data.items[i].title,
-      };
+      allUrls[i] = encodeURI(googleResponse.data.items[i].link);
     }
-    for (let i = 0; i < 5; i++) {
-      const response = await axios.get("https://app.scrapingbee.com/api/v1", {
+
+    const promises = allUrls.map((url) => {
+      return axios.get("https://app.scrapingbee.com/api/v1", {
         params: {
           api_key:
-            "SLIQY6OU4UHLCBX109PZVY0P1Z3ZQVRPE3KMYH4A1IFRV6K2MXADSWE58OO62EWGTYG1VK9WK8UTMWTP",
-          url: URL[i].url,
-          render_js: false,
-          block_resources: true,
-          block_ads: true,
+            "SASEYFR8LX0HZEJOEE0EVYQ6JIVK4178A3K3H7A7D9O17H0S1HWXXNRE1FZE4KTMAKVRVCMFEJPLS4CO",
+          url: url,
           json_response: true,
+          render_js: false,
           extract_rules: JSON.stringify({
             body: {
               selector: "p",
               output: "text",
               type: "list",
             },
+            title: {
+              selector: "h1",
+              output: "text",
+              type: "item",
+            },
           }),
         },
       });
-      text.push({ text: response.data.body.body, title: URL[i].title });
-    }
-    SetPara([...text]);
-    //html parsing
-    // const el = document.createElement("html");
-    // el.innerHTML = response.data.body;
+    });
 
-    // const p = el.getElementsByTagName("p");
-    // console.log([...p].map((v) => v.outerText));
+    try {
+      setIsLoading(true);
+      const res = await Promise.allSettled(promises);
+      const data = res.map((v) => (v.status === "fulfilled" ? v.value : null));
+      data.map((p) => {
+        text.push({
+          text: p.data.body.body,
+          title: p.data.body.title,
+        });
+      });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
+
+    SetPara([...text]);
   };
 
   return (
     <div className="min-h-screen bg-slate-100">
       <SearchEngine onSubmit={onSubmit} />
-      <ShowText para={para} />
+      <ShowText para={para} isloading={isloading} />
     </div>
   );
 }

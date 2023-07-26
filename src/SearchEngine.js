@@ -17,14 +17,14 @@ function SearchEngine({ onSubmit }) {
     <div className="pt-4">
       <form
         onSubmit={handleOnSubmit}
-        className="max-w-md mx-auto bg-white shadow-md border"
+        className="max-w-md mx-auto bg-white shadow-md border rounded-md  border border-slate-300"
       >
         <div className="relative flex items-center w-full h-12">
           <input
             value={term}
             onChange={handleOnChange}
             placeholder="search something..."
-            className=" h-full w-full text-sm text-gray-700 pr-2 pl-5"
+            className=" placeholder:italic block border border-slate-300 rounded-md h-full w-full text-sm text-gray-700 pr-2 pl-5"
           />
         </div>
       </form>
