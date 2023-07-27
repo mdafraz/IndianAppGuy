@@ -16,7 +16,7 @@ function App() {
       "https://customsearch.googleapis.com/customsearch/v1",
       {
         params: {
-          key: process.env.REACT_APP_KEY,
+          key: process.env.REACT_APP_GOOGLE_KEY,
           cx: process.env.REACT_APP_CX,
           q: term,
           num: 5,
